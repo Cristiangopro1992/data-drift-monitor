@@ -1,0 +1,13 @@
+# --- CORE ---
+numpy
+pandas
+scipy
+
+# --- INTERFAZ & PLOTS ---
+streamlit
+matplotlib
+seaborn
+
+# --- DATA HANDLING ---
+pyarrow  
+openpyxl 
