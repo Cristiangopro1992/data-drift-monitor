@@ -205,3 +205,24 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# 1. Ignore entire data folders
+data/
+datasets/
+input/
+output/
+
+# 2. Ignore loose data files (in case they escape the folder)
+*.tsv
+*.csv
+*.xlsx
+*.xls
+*.json
+*.parquet
+*.pickle
+*.pkl
+*.xml
+
+# 3. System files (Windows and Mac junk)
+.DS_Store
+Thumbs.db
