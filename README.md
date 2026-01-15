@@ -31,8 +31,8 @@ La herramienta compara ambos archivos y genera un reporte visual instantáneo so
 * **Entorno:** Gestión de dependencias con `venv` y `pip`.
 
 ## Funcionalidades
-- [x] Carga interactiva de archivos CSV (Baseline vs Target).
-- [x] Detección de **Schema Drift** (Columnas nuevas/perdidas).
+- [ ] Carga interactiva de archivos CSV (Baseline vs Target).
+- [ ] Detección de **Schema Drift** (Columnas nuevas/perdidas).
 - [ ] Detección de cambios en tipos de datos.
 - [ ] Análisis estadístico básico (conteo de nulos, filas, duplicados).
 - [ ] Visualización de distribuciones numéricas.
