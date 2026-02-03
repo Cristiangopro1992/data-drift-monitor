@@ -10,7 +10,7 @@ matplotlib
 seaborn
 
 # --- DATA HANDLING ---
-pyarrow  
+pyarrow==14.0.1
 openpyxl 
 
 # --- WORK ENVIROMENT ---
