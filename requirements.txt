@@ -1,5 +1,5 @@
 # --- CORE ---
-numpy
+numpy<2
 pandas
 scipy
 altair<5
