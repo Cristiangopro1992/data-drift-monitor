@@ -12,6 +12,31 @@ Esta herramienta detecta **Schema Drift** (cambios estructurales) y **Numerical 
 entre un dataset de referencia (Training/Base) y uno actual (Production/Target).
 """)
 
+
+# =======================
+# CAMBIO (FIX LargeUtf8)
+# =======================
+def normalize_for_streamlit(df):
+    # Si viene de otra lib (polars, etc.), lo traemos a pandas
+    if hasattr(df, "to_pandas"):
+        df = df.to_pandas()
+
+    # Forzar columnas texto a strings python
+    for col in df.columns:
+        if pd.api.types.is_string_dtype(df[col]) or df[col].dtype == "object":
+            df[col] = df[col].astype("string[python]")
+
+    # Categorías también a string python
+    cat_cols = df.select_dtypes(include=["category"]).columns
+    for col in cat_cols:
+        df[col] = df[col].astype("string[python]")
+
+    return df
+
+
+# =======================
+
+
 # --- SIDEBAR: CONFIGURACIÓN ---
 st.sidebar.header("1. Carga de Datos")
 
@@ -60,7 +85,13 @@ else:
 
 # --- LOGICA PRINCIPAL ---
 if df_base is not None and df_curr is not None:
-    # Instanciamos la clase lógica
+    # =======================
+    # CAMBIO (FIX LargeUtf8)
+    # =======================
+    df_base = normalize_for_streamlit(df_base)
+    df_curr = normalize_for_streamlit(df_curr)
+    # =======================
+
     analyzer = DriftAnalyzer(df_base, df_curr)
 
     st.markdown("---")
@@ -70,10 +101,10 @@ if df_base is not None and df_curr is not None:
         col1, col2 = st.columns(2)
         with col1:
             st.subheader("Base (Referencia)")
-            st.dataframe(df_base.head())
+            st.dataframe(df_base.head(), use_container_width=True)
         with col2:
             st.subheader("Current (Producción)")
-            st.dataframe(df_curr.head())
+            st.dataframe(df_curr.head(), use_container_width=True)
 
     # 2. SCHEMA DRIFT
     st.header("1. Schema Drift (Estructura)")
@@ -83,3 +114,65 @@ if df_base is not None and df_curr is not None:
 
     missing = schema_drift["columnas faltantes"]
     new_cols = schema_drift["columnas nuevas"]
+
+    with col_metrics_1:
+        st.metric(
+            "Columnas Faltantes",
+            len(missing),
+            delta=-len(missing) if missing else 0,
+            delta_color="inverse",
+        )
+        if missing:
+            st.error(f"❌ Desaparecieron: {', '.join(missing)}")
+        else:
+            st.success("✅ Sin columnas perdidas")
+
+    with col_metrics_2:
+        st.metric(
+            "Columnas Nuevas", len(new_cols), delta=len(new_cols) if new_cols else 0
+        )
+        if new_cols:
+            st.info(f"🆕 Nuevas detectadas: {', '.join(new_cols)}")
+        else:
+            st.success("✅ Sin columnas inesperadas")
+
+    # 3. NUMERICAL DRIFT
+    st.header("2. Numerical Drift (Estadístico)")
+    st.caption(
+        "Usando Test Kolmogorov-Smirnov (KS-Test). Si p-value < 0.05, detectamos cambio significativo."
+    )
+
+    try:
+        drift_report = analyzer.check_numeric_drift()
+
+        # =======================
+        # CAMBIO (FIX LargeUtf8)
+        # =======================
+        drift_report = normalize_for_streamlit(drift_report)
+
+        # Evitamos Styler (suele disparar el error en el frontend)
+        if "Drift Detectado" in drift_report.columns:
+            drift_report["Alerta"] = np.where(
+                drift_report["Drift Detectado"].eq("🔴 SÍ"), "🚨 DRIFT", "✅ OK"
+            )
+            drift_report = normalize_for_streamlit(drift_report)
+        # =======================
+
+        st.dataframe(drift_report, use_container_width=True)
+
+        # Alerta global
+        if "Drift Detectado" in drift_report.columns:
+            drift_count = (drift_report["Drift Detectado"] == "🔴 SÍ").sum()
+            if drift_count > 0:
+                st.warning(
+                    f"⚠️ ¡Atención! Se han detectado {drift_count} variables con drift estadístico."
+                )
+            else:
+                st.balloons()
+                st.success("Todo parece estable. No hay drift numérico significativo.")
+
+    except Exception as e:
+        st.error(f"Error calculando drift numérico: {e}")
+
+else:
+    st.info("👈 Sube tus archivos CSV o activa el 'Modo Demo' para comenzar.")

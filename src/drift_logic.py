@@ -55,15 +55,13 @@ class DriftAnalyzer:
                 continue
 
             # --- Test Estadístico (KS Test) ---
-            # ks_2samp compara si dos muestras provienen de la misma distribución continua
             statistic, p_value = ks_2samp(b_data, c_data)
 
-            # --- Detección ---
             drift_detected = p_value < p_value_threshold
 
             report.append(
                 {
-                    "Columna": col,
+                    "Columna": str(col),
                     "Media Base": round(b_data.mean(), 2),
                     "Media Actual": round(c_data.mean(), 2),
                     "KS P-Value": round(p_value, 4),
@@ -71,4 +69,10 @@ class DriftAnalyzer:
                 }
             )
 
-        return pd.DataFrame(report)
+        df_report = pd.DataFrame(report)
+
+        if not df_report.empty:
+            for col in ["Columna", "Drift Detectado"]:
+                if col in df_report.columns:
+                    df_report[col] = df_report[col].astype("string[python]")
+        return df_report
