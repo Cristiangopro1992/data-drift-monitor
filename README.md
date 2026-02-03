@@ -52,6 +52,6 @@ data-drift-monitor/
 │   ├── __init__.py
 │   └── drift_logic.py   # Clase DriftAnalyzer
 │
-├── app.py               # Punto de entrada de la aplicación (Streamlit)
+├── streamlit_app.py               # Punto de entrada de la aplicación (Streamlit)
 ├── requirements.txt     # Dependencias del proyecto
 └── README.md            # Documentación
