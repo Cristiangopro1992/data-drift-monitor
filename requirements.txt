@@ -11,3 +11,8 @@ seaborn
 # --- DATA HANDLING ---
 pyarrow  
 openpyxl 
+
+# --- WORK ENVIROMENT ---
+jupyterlab
+ipykernel
+ucimlrepo
