@@ -112,6 +112,9 @@ if df_base is not None and df_curr is not None:
     try:
         drift_report = analyzer.check_numeric_drift()
 
+        # Limpiamos también la tabla de resultados para evitar el error LargeUtf8
+        drift_report = clean_large_utf8(drift_report) 
+ 
         # Estilizar el dataframe para resaltar alertas
         def highlight_drift(row):
             return ['background-color: #ffcccc' if row['Drift Detectado'] == '🔴 SÍ' else '' for _ in row]
