@@ -1,5 +1,5 @@
 # --- CORE ---
-numpy
+numpy<2
 pandas
 scipy
 altair<5
@@ -10,7 +10,7 @@ matplotlib
 seaborn
 
 # --- DATA HANDLING ---
-pyarrow  
+pyarrow==14.0.1
 openpyxl 
 
 # --- WORK ENVIROMENT ---

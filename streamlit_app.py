@@ -40,31 +40,25 @@ def normalize_for_streamlit(df):
 # --- SIDEBAR: CONFIGURACIÓN ---
 st.sidebar.header("1. Carga de Datos")
 
-
 # Función auxiliar para crear datos fake (Para modo Demo)
 def generate_fake_data():
     np.random.seed(42)
     # Base: Datos normales
-    df_b = pd.DataFrame(
-        {
-            "id": range(100),
-            "edad": np.random.normal(30, 5, 100),  # Media 30
-            "ingresos": np.random.normal(50000, 2000, 100),
-            "categoria": np.random.choice(["A", "B"], 100),
-        }
-    )
+    df_b = pd.DataFrame({
+        "id": range(100),
+        "edad": np.random.normal(30, 5, 100),  # Media 30
+        "ingresos": np.random.normal(50000, 2000, 100),
+        "categoria": np.random.choice(["A", "B"], 100),
+    })
     # Current: Datos con DRIFT
-    df_c = pd.DataFrame(
-        {
-            "id": range(100),
-            "edad": np.random.normal(35, 5, 100),  # DRIFT: Media sube a 35
-            "ingresos": np.random.normal(50000, 2000, 100),  # Sin drift
-            "descuento": np.random.uniform(0, 10, 100),  # DRIFT: Columna nueva
-            # 'categoria': desaparece (DRIFT: Columna faltante)
-        }
-    )
+    df_c = pd.DataFrame({
+        "id": range(100),
+        "edad": np.random.normal(35, 5, 100),  # DRIFT: Media sube a 35
+        "ingresos": np.random.normal(50000, 2000, 100),  # Sin drift
+        "descuento": np.random.uniform(0, 10, 100),  # DRIFT: Columna nueva
+        # 'categoria': desaparece (DRIFT: Columna faltante)
+    })
     return df_b, df_c
-
 
 # Opción de Demo
 use_demo = st.sidebar.checkbox("⚡ Usar Datos de Ejemplo (Modo Demo)", value=False)
@@ -85,13 +79,11 @@ else:
 
 # --- LOGICA PRINCIPAL ---
 if df_base is not None and df_curr is not None:
-    # =======================
-    # CAMBIO (FIX LargeUtf8)
-    # =======================
+    # Normalizamos los dataframes para evitar errores LargeUtf8 en Streamlit
     df_base = normalize_for_streamlit(df_base)
     df_curr = normalize_for_streamlit(df_curr)
-    # =======================
-
+    
+    # Instanciamos la clase lógica
     analyzer = DriftAnalyzer(df_base, df_curr)
 
     st.markdown("---")
@@ -116,21 +108,14 @@ if df_base is not None and df_curr is not None:
     new_cols = schema_drift["columnas nuevas"]
 
     with col_metrics_1:
-        st.metric(
-            "Columnas Faltantes",
-            len(missing),
-            delta=-len(missing) if missing else 0,
-            delta_color="inverse",
-        )
+        st.metric("Columnas Faltantes", len(missing), delta=-len(missing) if missing else 0, delta_color="inverse")
         if missing:
             st.error(f"❌ Desaparecieron: {', '.join(missing)}")
         else:
             st.success("✅ Sin columnas perdidas")
 
     with col_metrics_2:
-        st.metric(
-            "Columnas Nuevas", len(new_cols), delta=len(new_cols) if new_cols else 0
-        )
+        st.metric("Columnas Nuevas", len(new_cols), delta=len(new_cols) if new_cols else 0)
         if new_cols:
             st.info(f"🆕 Nuevas detectadas: {', '.join(new_cols)}")
         else:
@@ -138,35 +123,21 @@ if df_base is not None and df_curr is not None:
 
     # 3. NUMERICAL DRIFT
     st.header("2. Numerical Drift (Estadístico)")
-    st.caption(
-        "Usando Test Kolmogorov-Smirnov (KS-Test). Si p-value < 0.05, detectamos cambio significativo."
-    )
+    st.caption("Usando Test Kolmogorov-Smirnov (KS-Test). Si p-value < 0.05, detectamos cambio significativo.")
 
     try:
         drift_report = analyzer.check_numeric_drift()
-
-        # =======================
-        # CAMBIO (FIX LargeUtf8)
-        # =======================
+        
+        # Normalizamos el reporte para evitar errores LargeUtf8
         drift_report = normalize_for_streamlit(drift_report)
-
-        # Evitamos Styler (suele disparar el error en el frontend)
-        if "Drift Detectado" in drift_report.columns:
-            drift_report["Alerta"] = np.where(
-                drift_report["Drift Detectado"].eq("🔴 SÍ"), "🚨 DRIFT", "✅ OK"
-            )
-            drift_report = normalize_for_streamlit(drift_report)
-        # =======================
-
+        
         st.dataframe(drift_report, use_container_width=True)
 
         # Alerta global
         if "Drift Detectado" in drift_report.columns:
             drift_count = (drift_report["Drift Detectado"] == "🔴 SÍ").sum()
             if drift_count > 0:
-                st.warning(
-                    f"⚠️ ¡Atención! Se han detectado {drift_count} variables con drift estadístico."
-                )
+                st.warning(f"⚠️ ¡Atención! Se han detectado {drift_count} variables con drift estadístico.")
             else:
                 st.balloons()
                 st.success("Todo parece estable. No hay drift numérico significativo.")
