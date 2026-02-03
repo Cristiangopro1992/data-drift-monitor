@@ -131,4 +131,4 @@ if df_base is not None and df_curr is not None:
         st.error(f"Error calculando drift numérico: {e}")
 
 else:
-    st.info("
+    st.info("👈 Sube tus archivos CSV o activa el 'Modo Demo' para comenzar.")
