@@ -63,7 +63,7 @@ if df_base is not None and df_curr is not None:
     # Instanciamos la clase lógica
     analyzer = DriftAnalyzer(df_base, df_curr)
 
-    st.divider()
+    st.markdown("---")
 
     # 1. VISUALIZACIÓN DE DATASETS
     with st.expander("👀 Ver Datasets (Primeras 5 filas)"):
